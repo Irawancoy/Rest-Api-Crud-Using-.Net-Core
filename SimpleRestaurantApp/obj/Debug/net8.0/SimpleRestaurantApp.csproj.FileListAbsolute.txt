@@ -135,3 +135,4 @@ C:\Bootcamp\Padepokan79\Readiness LG\Task4\SimpleRestaurantApp\SimpleRestaurantA
 C:\Bootcamp\Padepokan79\Readiness LG\Task4\SimpleRestaurantApp\SimpleRestaurantApp\obj\Debug\net8.0\SimpleRestaurantApp.pdb
 C:\Bootcamp\Padepokan79\Readiness LG\Task4\SimpleRestaurantApp\SimpleRestaurantApp\obj\Debug\net8.0\SimpleRestaurantApp.genruntimeconfig.cache
 C:\Bootcamp\Padepokan79\Readiness LG\Task4\SimpleRestaurantApp\SimpleRestaurantApp\obj\Debug\net8.0\ref\SimpleRestaurantApp.dll
+C:\Bootcamp\Padepokan79\Readiness LG\Task4\SimpleRestaurantApp\SimpleRestaurantApp\obj\Debug\net8.0\SimpleRestaurantApp.sourcelink.json

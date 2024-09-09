@@ -21,8 +21,8 @@ namespace SimpleRestaurantApp.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Food>>> GetFoods()
         {
-            // Mengambil daftar semua makanan dari database
-            return await _context.Foods.ToListAsync();
+            // Mengambil daftar semua makanan dari database termasuk transaksi yang terkait
+            return await _context.Foods.Include(t=>t.Transactions).ToListAsync();
         }
 
         // GET: api/Foods/{id}
