@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "MsrcfCeJy8wXkVrCdKqCTbwIE7zFJgjE0DCRnDmUsuw=",
+  "Source": "SimpleRestaurantApp",
+  "BasePath": "_content/SimpleRestaurantApp",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
