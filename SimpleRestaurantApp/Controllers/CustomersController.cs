@@ -61,18 +61,48 @@ namespace SimpleRestaurantApp.Controllers
             // Memeriksa apakah ID pelanggan yang diberikan sesuai dengan ID dalam objek pelanggan
             if (id != customer.Id)
             {
-                return BadRequest();
+                return BadRequest("ID pelanggan tidak cocok dengan ID dalam objek pelanggan.");
             }
 
+            // Mencari entitas pelanggan yang ada di database
+            var existingCustomer = await _context.Customers.FindAsync(id);
+            if (existingCustomer == null)
+            {
+                return NotFound("Pelanggan tidak ditemukan.");
+            }
+
+            // Memperbarui entitas pelanggan dengan data dari objek pelanggan
+            existingCustomer.Name = customer.Name; 
+            existingCustomer.Email = customer.Email; 
+            existingCustomer.Phonenumber = customer.Phonenumber;
+                                                     
+
             // Menandai entitas pelanggan sebagai Modified untuk menyimpan perubahan
-            _context.Entry(customer).State = EntityState.Modified;
+            _context.Entry(existingCustomer).State = EntityState.Modified;
 
-            // Menyimpan perubahan ke database
-            await _context.SaveChangesAsync();
+            try
+            {
+                // Menyimpan perubahan ke database
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Menangani kesalahan ketika entitas tidak dapat diupdate
+                if (!CustomerExists(id))
+                {
+                    return NotFound("Pelanggan tidak ditemukan saat menyimpan perubahan.");
+                }
+                else
+                {
+                    throw; // Melempar kembali kesalahan jika ada kesalahan lainnya
+                }
+            }
+            var result = await _context.Customers.Include(t => t.Transactions).FirstOrDefaultAsync(c => c.Id == id);
 
-            // Mengembalikan NoContent setelah berhasil memperbarui data
-            return NoContent();
+            // Mengembalikan data pelanggan yang telah diperbarui
+            return Ok(result);
         }
+
 
         // DELETE: api/Customers/{id}
         [HttpDelete("{id}")]
@@ -84,15 +114,31 @@ namespace SimpleRestaurantApp.Controllers
             // Mengembalikan NotFound jika pelanggan dengan ID tersebut tidak ditemukan
             if (customer == null)
             {
-                return NotFound();
+                return NotFound("Pelanggan dengan ID tersebut tidak ditemukan.");
             }
 
-            // Menghapus pelanggan dari konteks
-            _context.Customers.Remove(customer);
-            await _context.SaveChangesAsync();
+            try
+            {
+                // Menghapus pelanggan dari konteks
+                _context.Customers.Remove(customer);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // Menangani kesalahan jika terjadi saat menghapus
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Terjadi kesalahan saat menghapus pelanggan: {ex.Message}");
+            }
 
-            // Mengembalikan NoContent setelah berhasil menghapus data
-            return NoContent();
+            // Mengembalikan pesan konfirmasi bahwa pelanggan telah dihapus
+            return Ok(new { message = $"Pelanggan dengan ID {id} telah dihapus." });
+        }
+
+
+
+        private bool CustomerExists(int id)
+        {
+            return _context.Customers.Any(e => e.Id == id);
         }
     }
+
 }

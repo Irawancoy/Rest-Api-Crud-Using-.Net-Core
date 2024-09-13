@@ -133,7 +133,8 @@ namespace SimpleRestaurantApp.Controllers
             // Menyimpan perubahan ke database
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            var result = await _context.Transactions.Include(t => t.IdcustomersNavigation).Include(t => t.IdfoodNavigation).FirstOrDefaultAsync(t => t.Id == id);
+            return Ok(result);
         }
 
         // DELETE: api/Transactions/{id}
@@ -146,14 +147,30 @@ namespace SimpleRestaurantApp.Controllers
             // Mengembalikan NotFound jika transaksi tidak ditemukan
             if (transaction == null)
             {
-                return NotFound();
+                return NotFound("Transakasi dengan ID tersebut tidak ditemukan.");
             }
+            try
+            {
 
             // Menghapus transaksi dari konteks
             _context.Transactions.Remove(transaction);
             await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // Menangani kesalahan jika terjadi saat menghapus
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Terjadi kesalahan saat menghapus transaksi: {ex.Message}");
+            }
 
-            return NoContent();
+            return Ok(new { message = $"Transaksi dengan ID {id} telah dihapus." });
+
+
+
+        }
+
+        private bool TransactionExists(int id)
+        {
+            return _context.Transactions.Any(e => e.Id == id);
         }
     }
 }

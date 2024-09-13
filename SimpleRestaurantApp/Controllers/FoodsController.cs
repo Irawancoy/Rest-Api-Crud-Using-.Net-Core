@@ -61,17 +61,50 @@ namespace SimpleRestaurantApp.Controllers
             // Memeriksa apakah ID makanan yang diberikan sesuai dengan ID dalam objek makanan
             if (id != food.Id)
             {
-                return BadRequest();
+                return BadRequest("ID Makanan tidak cocok dengan ID dalam objek makanan.");
             }
 
-            // Menandai entitas makanan sebagai Modified untuk menyimpan perubahan
-            _context.Entry(food).State = EntityState.Modified;
+            //Mencari entitas makanan yang ada di database
+            var existingFood = await _context.Foods.FindAsync(id);
+            if (existingFood == null)
+            {
+                return NotFound("Makanan tidak ditemukan.");
+            }
 
-            // Menyimpan perubahan ke database
-            await _context.SaveChangesAsync();
 
-            // Mengembalikan NoContent setelah berhasil memperbarui data
-            return NoContent();
+
+            // Memperbarui properti makanan yang ada
+            existingFood.Name = food.Name;
+            existingFood.Price = food.Price;
+            existingFood.Stock = food.Stock;
+
+            _context.Entry(existingFood).State = EntityState.Modified;
+
+            try
+            {
+                // Menyimpan perubahan ke database
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Menangani kesalahan concurency
+                if (!FoodExists(id))
+                {
+                    return NotFound("Makanan tidak ditemukan.");
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            var result = await _context.Foods.Include(t => t.Transactions).FirstOrDefaultAsync(f => f.Id == id);
+
+            // Mengembalikan data makanan yang telah diperbarui
+            return Ok(result);
+           
+
+
         }
 
         // DELETE: api/Foods/{id}
@@ -82,15 +115,30 @@ namespace SimpleRestaurantApp.Controllers
             var food = await _context.Foods.FindAsync(id);
             if (food == null)
             {
-                return NotFound();
+                return NotFound("Makanan dengan ID tersebut tidak ditemukan.");
             }
 
+            try
+            {
             // Menghapus makanan dari konteks
             _context.Foods.Remove(food);
             await _context.SaveChangesAsync();
 
-            // Mengembalikan NoContent setelah berhasil menghapus data
-            return NoContent();
+            }
+            catch(Exception ex)
+            {
+                // Menangani kesalahan jika terjadi saat menghapus
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Terjadi kesalahan saat menghapus makanan: {ex.Message}");
+            }
+
+            return Ok(new {message = $"Makanan dengan ID {id} telah dihapus."});
+
+
+        }
+
+        private bool FoodExists(int id)
+        {
+            return _context.Foods.Any(e => e.Id == id);
         }
     }
 }
